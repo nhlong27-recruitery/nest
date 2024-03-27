@@ -53,13 +53,36 @@ const checkoutObj = {
   reference_id: 'mystore_order_00001'
 }
 
+let token = undefined;
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
+  
 
+  @Get('/')
+  async index(@Req() req: Request): Promise<number> {
+    return `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>My Nest.js HTML Page</title>
+    </head>
+    <body>
+        <h1>Hello, Nest.js!</h1>
+        <p>This is a simple HTML page served by Nest.js.</p>
+        <div id="tz-checkout"></div>
+        <script type="text/javascript" src="https://js-sandbox.tazapay.com/v2.0-sandbox.js"></script>
+      <script>
+      window.tazapay.checkout({
+        clientToken: "${token}"})
+      </script>
+    </body>
+    </html>`
+  }
   @Get('checkout')
   async checkout(@Req() req: Request): Promise<number> {
-    return fetch('https://service-sandbox.tazapay.com/v3/checkout', {
+    token = await fetch('https://service-sandbox.tazapay.com/v3/checkout', {
       method: 'POST',
       headers: {
         accept: 'application/json',
@@ -69,8 +92,9 @@ export class AppController {
       body: JSON.stringify(checkoutObj)
     })
     .then(response => response.json())
-  .then(response => console.log(response))
+  .then(response => response.data.token)
   .catch(err => console.error(err));
+    
   }
   @Post('webhook')
   async webhook(@Req() req: Request, @Body() webhookBody: WebhookDto): Promise<number> {
